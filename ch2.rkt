@@ -56,3 +56,34 @@
 (no-more? '(2))
 
 (count-change 11)
+
+
+#2.38 - my own implementation of fold-left
+
+(define (fold-left op initial sequence) 
+   (define (iter result rest) 
+     (if (null? rest) 
+         result 
+         (iter (op result (car rest)) 
+               (cdr rest)))) 
+   (iter initial sequence))
+
+(define (accumulate op initial sequence) 
+   (if (null? sequence) 
+       initial 
+       (op (car sequence) 
+           (accumulate op initial (cdr sequence))))) 
+  
+ (define (fold-right op initial sequence) 
+   (accumulate op initial sequence)) 
+#2.39 - Reverse
+
+(define (reverse-w-fold sequ)
+  (fold-left (lambda (x y) (cons y x)) null sequ))
+
+(define (reverse-w-fold-2 sequ)
+  (fold-right (lambda (x y) (append y  (list x))) null sequ))
+
+
+(Reverse-w-fold (list 1 2 3 4 ))
+(reverse-w-fold-2 (list 1 2 3 4 ))
