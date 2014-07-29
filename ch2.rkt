@@ -58,7 +58,7 @@
 (count-change 11)
 
 
-#2.38 - my own implementation of fold-left
+@; 2.38 - my own implementation of fold-left
 
 (define (fold-left op initial sequence) 
    (define (iter result rest) 
@@ -76,7 +76,7 @@
   
  (define (fold-right op initial sequence) 
    (accumulate op initial sequence)) 
-#2.39 - Reverse
+@;2.39 - Reverse
 
 (define (reverse-w-fold sequ)
   (fold-left (lambda (x y) (cons y x)) null sequ))
@@ -88,11 +88,34 @@
 (Reverse-w-fold (list 1 2 3 4 ))
 (reverse-w-fold-2 (list 1 2 3 4 ))
 
-#2.44 A Picture Language
+#!2.44 A Picture Language
 
 (define (up-split painter n)
   (if (= n 0)
       painter)
   (let ((smaller (up-split painter (- n 1 ))))
     (below painter (beside smaller smaller))))
+  
+(define make-vect
+  cons)
 
+(define xcor-vect
+  car)
+
+(define ycor-vect
+  cdr)
+
+(define (_vect-ops op)
+  (lambda (v1 v2)
+    (make-vect (op (xcor-vect v1) (xcor-vect v2)) 
+               (op (ycor-vect v1) (ycor-vect v2)))))
+
+(define (sub-vect v1 v2) 
+    (make-vect (- (xcor-vect v1) (xcor-vect v2)) 
+               (- (ycor-vect v1) (ycor-vect v2))))
+
+(define (add-vect v1 v2)
+  ((_vect-ops +) v1 v2))
+(define (scale-vect s vec) 
+            (make-vect (* s (xcor-vect vec)) 
+                       (* s (ycor-vect vec))))
