@@ -53,7 +53,39 @@
 (define (or? exp)
   (tagged-list? exp 'or))
 (define (or-op1 exp) (car exp))
-(define (or-op2 exp) (cdr exp))
-(define (or->if exp) (make-or (cdr exp)))
-(define (make-or exp)
-  )
+(define (or-rest exp) (cdr exp))
+(define (or->if exp env)
+  (eval (eval-or (cdr exp))))
+(define (eval-or exp)
+  (let ((first (or-op1 exp))
+        (rest (or-rest exp)))
+    (if (null? first)
+        'false        
+        (make-if first
+                 first
+                 (eval-or rest)))))
+
+;;Ex 4.5
+
+(define (cond-=>-clause?  clause)
+  (eq? (cadr clause) '=>))
+
+(define (expand-clauses clauses)
+  (if (null? clauses)
+      'false                                         ; 
+      (let ((first (car clauses))
+            (rest (cdr clauses)))
+        (if (cond-else-clause? first)
+            (if (null? rest)
+                (sequence->exp (cond-actions first))
+                (error "ELSE clause isn't last: COND->IF"
+                       clauses))
+            (if (cond-=>-clause? first)
+                (let ((predicate-val (cond-predicate first)))
+                  (make-if predicate-val
+                           (list  (cdr (cond-actions first)) predicate-val)
+                           (expand-clauses rest)))
+                (make-if (cond-predicate first)
+                         (sequence->exp (cond-actions first))
+                         (expand-clauses rest)))))))
+
