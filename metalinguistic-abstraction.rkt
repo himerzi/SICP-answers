@@ -89,3 +89,21 @@
                          (sequence->exp (cond-actions first))
                          (expand-clauses rest)))))))
 
+;; Exercise 4.6
+
+(define (let-bindings exp) (cadr exp))
+(define (let-body exp) (cddr exp) )
+(define (let->combination exp)
+  (eval-let (let-bindings exp) '() '() (let-body exp)))
+
+(define (make-lambda params body)
+  (cons 'lambda (cons params body)))
+
+(define (eval-let bindings vars exps body)
+  (let* ((bndg (car bindings))
+         (rest (cdr bindings))
+         (vars (cons (car bndg)  vars))
+         (exps (cons (cadr bndg) exps)))
+    (if (null? rest)
+        (cons (make-lambda vars body) exps)
+        (eval-let rest vars exps  body))))
