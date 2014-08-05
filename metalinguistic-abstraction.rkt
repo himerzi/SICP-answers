@@ -107,3 +107,24 @@
     (if (null? rest)
         (cons (make-lambda vars body) exps)
         (eval-let rest vars exps  body))))
+
+;; Ex 4.7
+(define (make-let bindings body)
+  (cons 'let (cons bindings body)))
+
+(define (let-body exp)
+  (cddr exp))
+
+(define (let*->nested-lets exp)
+  (let ((body (let-body exp)))
+
+    (define (build-let bindings)
+      (let ((rest (cdr bindings))
+            (current-bindings (list (car bindings))))
+        (if (null? rest)
+            (make-let current-bindings  body)
+            (list 'let current-bindings (build-let rest)))))
+    
+    (build-let (let-bindings exp))))
+
+
