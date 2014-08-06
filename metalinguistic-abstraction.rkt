@@ -128,3 +128,27 @@
     (build-let (let-bindings exp))))
 
 
+
+;;Ex 4.define
+
+;;my abstraction for frame traversing only
+
+(define (frame-traverser frame val)
+  (define (scan-no-recur vars vals)
+    (cond ((null? vars)
+           '())
+          ((eq? var (car vars))
+           vals)
+          (else (scan (cdr vars) (cdr vals)))))
+  (scan (frame-variables frame)
+        (frame-values frame)))
+
+(define (set-variable-value var val env)
+  (define (env-loop env)
+    (if (eq? env the-empty-environment)
+          (error "Unbound variable or something such:" var))
+    (let ((result (frame-traverser (first-frame env) val)))
+      (cond ((null? result)
+             (env-loop (enclosing-environment env)))
+            (else
+             (set-car! result val))))))
