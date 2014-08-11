@@ -202,3 +202,15 @@
   (display c)
   (set! a 4)
   (display c))
+
+;;Ex 4.21 a. Y comb for fibonacci number
+((lambda (n)
+   ((lambda  (fact)
+      (fact fact n))
+    (lambda (ft k)
+      (cond
+       ((= k 0) 0)
+       ((= k 1) 1)
+       (else (+ (ft ft (- k 1)) (ft ft (- k 2))))))))
+ 10)
+
