@@ -215,3 +215,16 @@
  10)
 
 ;; Ex 4.22
+
+(define (analyze-let exp)
+  (lambda (env) (eval-analyze-let (let-bindings exp '() '() (let-body exp)))))
+
+(define (eval-analyze-let bindings vars exps body)
+  (let* ((bndg (car bindings))
+         (rest (cdr bindings))
+         (vars (cons (car bndg)  vars))
+         (exp (cadr bndg))
+         (exps (cons exp exps)))
+    (if (null? rest)
+        (analyze (cons (make-lambda vars body) exps))
+        (eval-let rest vars exps body))))
