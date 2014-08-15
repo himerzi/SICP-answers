@@ -228,3 +228,99 @@
     (if (null? rest)
         (analyze (cons (make-lambda vars body) exps))
         (eval-let rest vars exps body))))
+
+;; Ex 4.31 - Implementing lazyness and memoized-lazyness as an
+;; upward-compatible extention to Scheme (what)
+(define (eval exp env)
+  (cond ((self-evaluating? exp) exp)
+        ((variable? exp) (lookup-variable-value exp env))
+        ((quoted? exp) (text-of-quotation exp))
+        ((assignment? exp) (eval-assignment exp env))
+        ((definition? exp) (eval-definition exp env))
+        ((if? exp) (eval-if exp env))
+        ((lambda? exp)
+         (make-procedure (lambda-parameters exp)
+                         (lambda-body exp)
+                         env))
+        ((begin? exp) 
+         (eval-sequence (begin-actions exp) env))
+        ((cond? exp) (eval (cond->if exp) env))
+        ;;lazyness stuff
+        ((is-lazy-arg? exp)
+         (delay-it exp env))
+        ((is-lazy-memo-arg? exp)
+         (delay-it exp env))
+        ((application? exp)
+         (apply (eval (operator exp) env)
+                (list-of-values (operands exp) env)))
+        (else
+         (error "Unknown expression type -- EVAL" exp))))
+
+(define (apply procedure arguments)
+  (cond ((primitive-procedure? procedure)
+         (apply-primitive-procedure procedure
+                                    (list-of-arg-values arguments))) ;;lazy stuff
+        ((compound-procedure? procedure)
+         (eval-sequence
+           (procedure-body procedure)
+           (extend-environment
+            (procedure-parameters procedure)
+            
+             arguments
+             (procedure-environment procedure))))
+        (else
+         (error
+          "Unknown procedure type -- APPLY" procedure))))
+
+(define (list-of-values exps env)
+  (if (no-operands? exps)
+      '()
+      (cons (eval (first-operand exps) env)
+            (list-of-values (rest-operands exps) env))))
+
+(define (is-lazy-arg? exp)
+  (tagged-list? (cdr exp) 'lazy))
+
+(define (is-lazy-memo-arg? exp)
+  (tagged-list? (cdr exp) 'lazy-memo))
+
+(define (list-of-arg-values exps env)
+  (cond  ((no-operands? exps)
+          '())
+         (is)
+      (cons (actual-value (first-operand exps) env)
+            (list-of-arg-values (rest-operands exps)
+                                env))))
+(define (actual-value exp env)
+  (force-it (eval exp env)))
+
+
+;;Dispatch on force it based on memo or no memo -
+;; non-memoizing version of force-it
+
+(define (force-it obj)
+  (if (thunk? obj)
+      (actual-value (thunk-exp obj) (thunk-env obj))
+      obj))
+
+;; memoizing version of force-it
+
+(define (force-it obj)
+  (cond ((thunk? obj)
+         (let ((result (actual-value
+                        (thunk-exp obj)
+                        (thunk-env obj))))
+           (set-car! obj 'evaluated-thunk)
+           (set-car! (cdr obj) result)  ; replace exp with its value
+           (set-cdr! (cdr obj) '())     ; forget unneeded env
+           result))
+        ((evaluated-thunk? obj)
+         (thunk-value obj))
+        (else obj)))
+
+(define (delay-it exp env memo?)
+  (if (is-lazy-memo-arg? exp)
+      (list 'thunk-memo exp env)
+      (list 'thunk exp env)))
+
+;;Ex 4.31 done with analyzing evaluator
