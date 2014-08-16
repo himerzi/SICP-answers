@@ -346,17 +346,12 @@
   (let ((fproc (analyze (operator exp)))
         (aprocs (map (lambda (operand)
                        (if (lazy-operand? operand)
-                           (wrap it up)
+                           (analyze-lazy operand)
                            (analyze operand))) (operands exp))))
     (lambda (env)
       (execute-application (fproc env)
                            (map (lambda (aproc) (aproc env))
                                 aprocs)))))
-
-(define (lazy-operand? exp)
-  (or
-   (tagged-list? (cdr exp) 'lazy)
-   (tagged-list? (cdr exp) 'lazy-memo)))
 
 (define (execute-application proc args)
   (cond ((primitive-procedure? proc)
@@ -370,3 +365,11 @@
          (error
           "Unknown procedure type -- EXECUTE-APPLICATION"
           proc))))
+(define (lazy-operand? exp)
+  (or
+   (tagged-list? (cdr exp) 'lazy)
+   (tagged-list? (cdr exp) 'lazy-memo)))
+
+(define (analyze-lazy exp env)
+  (let ((thunk (delay-it exp env)))
+    (lambda (env) thunk)))
