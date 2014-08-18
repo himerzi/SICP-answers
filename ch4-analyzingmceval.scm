@@ -110,7 +110,10 @@
         (aprocs (map analyze (operands exp))))
     (lambda (env)
       (execute-application (fproc env)
-                           (map (lambda (aproc) (aproc env)) ;;don't call
+                           (map (lambda (aproc)
+                                  (if (thunk? aproc)
+                                      aproc
+                                      (aproc env))) ;;don't call
                                 ;;the ones that shuold be lazy - cycle
                                 ;;through the defintion for that fproc
                                 ;;(its in the fproc object) and check
@@ -118,11 +121,15 @@
                                 ;;and memo them.
                                 ;;realize them in primitive procedure
                                 ;;if they are lazy - not in compound procedure
-                                aprocs)))))
+                                (argument-lazy-checker aprocs
+                                                       (procedure-parameters (fproc env)) env))))))
+
+
 
 (define (execute-application proc args)
   (cond ((primitive-procedure? proc)
-         (apply-primitive-procedure proc args))
+         ;;check if there are lazys and realize them
+         (apply-primitive-procedure proc (map force-it args)))
         ((compound-procedure? proc)
          ((procedure-body proc)
           (extend-environment (procedure-parameters proc)
@@ -132,5 +139,31 @@
          (error
           "Unknown procedure type -- EXECUTE-APPLICATION"
           proc))))
+
+(define (argument-lazy-checker args defs env)
+  (cond
+   ((null? defs)
+    '())
+   ((lazy-param? (car defs))
+    (cons (build-lazy (car args) env)
+          (argument-lazy-checker (cdr args) (cdr defs) env)))
+   (else (cons (car args)
+               (argument-lazy-checker (cdr args) (cdr defs) env)))))
+
+(define (build-lazy exp env)
+  (list exp env 'lazy))
+(define (lazy-param? exp)
+  (if (pair? exp)
+      (eq? (cadr exp) 'lazy)
+      #f))
+(define (thunk? exp)
+  (if (pair? exp)
+      (eq? (caddr exp) 'lazy)
+      #f))
+
+(define (force-it obj)
+  (if (thunk? obj)
+      (force-it obj)
+      obj))
 
 'ANALYZING-METACIRCULAR-EVALUATOR-LOADED
