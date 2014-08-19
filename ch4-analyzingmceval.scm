@@ -109,6 +109,7 @@
   (let ((fproc (analyze (operator exp)))
         (aprocs (map analyze (operands exp))))
     (lambda (env)
+      
       (execute-application (fproc env)
                            (map (lambda (aproc)
                                   (if (thunk? aproc)
@@ -120,28 +121,39 @@
                                 ;;for operands that should be memoe'd
                                 ;;and memo them.
                                 ;;realize them in primitive procedure
-                                ;;if they are lazy - not in compound procedure
+                                ;;if they are lazy - not in compound
+                       ;;procedure
+                                
                                 (argument-lazy-checker aprocs
                                                        (procedure-parameters (fproc env)) env))))))
 
 
 
 (define (execute-application proc args)
+  ;;(bkpt 'test-2 'd)
   (cond ((primitive-procedure? proc)
          ;;check if there are lazys and realize them
          (apply-primitive-procedure proc (map force-it args)))
         ((compound-procedure? proc)
          ((procedure-body proc)
-          (extend-environment (procedure-parameters proc)
+          (extend-environment (procedure-parameter-names proc)
                               args
                               (procedure-environment proc))))
         (else
          (error
           "Unknown procedure type -- EXECUTE-APPLICATION"
           proc))))
-
+(define (procedure-parameter-names proc)
+  (map (lambda (param)
+         (if (lazy-param? param)
+             (car param)
+             param))
+       (procedure-parameters proc)))
 (define (argument-lazy-checker args defs env)
   (cond
+   ((not (pair? defs)) ;;this is for dealing with primitive procedures
+    ;;where defs wont be a nice list of parameters
+    args)
    ((null? defs)
     '())
    ((lazy-param? (car defs))
@@ -160,10 +172,21 @@
   (if (pair? exp)
       (eq? (caddr exp) 'lazy)
       #f))
-
+(define (thunk-exp thunk) (car thunk))
+(define (thunk-env thunk) (cadr thunk))
 (define (force-it obj)
+  ;;(bkpt 'test-2 'd)
   (if (thunk? obj)
-      (force-it obj)
+      ((thunk-exp obj) (thunk-env obj))
       obj))
+
+(define (driver-loop)
+  (prompt-for-input input-prompt)
+  (let ((input (read)))
+    (let ((output
+           (eval input the-global-environment)))
+      (announce-output output-prompt)
+      (user-print (force-it output))))
+  (driver-loop))
 
 'ANALYZING-METACIRCULAR-EVALUATOR-LOADED
