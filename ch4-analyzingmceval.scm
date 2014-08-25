@@ -175,7 +175,7 @@
 (define (thunk-exp thunk) (car thunk))
 (define (thunk-env thunk) (cadr thunk))
 (define (force-it obj)
-  ;;(bkpt 'test-2 'd)
+  ;(bkpt 'test-2 'd)
   (if (thunk? obj)
       ((thunk-exp obj) (thunk-env obj))
       obj))
