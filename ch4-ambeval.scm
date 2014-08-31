@@ -278,6 +278,7 @@
         (list 'memq memq)
         (list 'member member)
         (list 'not not)
+        (list 'apply apply-in-underlying-scheme)
         (list '+ +)
         (list '- -)
         (list '* *)
