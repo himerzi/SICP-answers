@@ -1989,6 +1989,16 @@ count
 
 (sum-of-squares 3 4)
 
+;; EXERCISE 4.51
+(define (analyze-permanent-set! exp)
+  (let ((var (assignment-variable exp))
+        (vproc (analyze (assignment-value exp))))
+    (lambda (env success fail)
+      (vproc env (lambda (val fail2)
+                   (set-variable-value! var val env)
+                   (succeed 'ok fail2))
+             
+             fail))))
 
 ;; EXERCISE 4.52
 (define success-clause cadr)
