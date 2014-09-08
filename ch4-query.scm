@@ -651,3 +651,4 @@
           (and (supervisor ?staff-person ?middle-manager)
                (outranked-by ?middle-manager ?boss))))
 ))
+
