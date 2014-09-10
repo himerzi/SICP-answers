@@ -12,3 +12,8 @@
 
 
 
+;; Ex 4.61
+(rule (last-pair (?h . ?t) ?z)
+      (last-pair ?t  ?z))
+(rule (last-pair (?u) ?u))
+

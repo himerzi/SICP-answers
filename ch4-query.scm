@@ -650,5 +650,9 @@
       (or (supervisor ?staff-person ?boss)
           (and (supervisor ?staff-person ?middle-manager)
                (outranked-by ?middle-manager ?boss))))
+(rule (last-pair (?u) ?u))
+(rule (last-pair (?h . ?t) ?z)
+      (last-pair ?t  ?z))
+
 ))
 
