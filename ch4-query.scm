@@ -653,6 +653,26 @@
 (rule (last-pair (?u) ?u))
 (rule (last-pair (?h . ?t) ?z)
       (last-pair ?t  ?z))
+(rule (grandson ?g ?s)
+      (and (son ?f ?s)
+           (son ?g ?f)))
+(rule (son ?m ?s)
+      (wife ?m ?w)
+      (son ?w ?s))
+
+(rule (append-to-form () ?y ?y))
+
+(rule (append-to-form (?u . ?v) ?y (?u . ?z))
+      (append-to-form ?v ?y ?z))
+
+(rule (reverse () ()))
+
+;;(rule (reverse (?x) (?x)))
+
+(rule (reverse (?h . ?t) ?r)
+      (and (append-to-form ?r2 (?h) ?r)
+           (reverse ?t ?r2)))
+
+
 
 ))
-
